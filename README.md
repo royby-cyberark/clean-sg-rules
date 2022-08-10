@@ -7,6 +7,8 @@
 
 * If you want to make changes to the Lambda, you need to run `source synth_cf_template` to generate an update CF template file (requires a working CDK env - see below)
 
+* Destroy the stack (replace name if needed): `aws cloudformation delete-stack --stack-name DefaultSecurityGroupCleaner`
+
 # Invoking the Lambda
 You can invoke the lambda however you want (console, aws cli, etc.)
 By default it will do a dry-run and won't delete anything, but you can look at its cloudwatch to see what it would do.
