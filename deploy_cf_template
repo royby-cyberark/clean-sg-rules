@@ -2,4 +2,4 @@
 
 value=${1:-DefaultSecurityGroupCleaner}
 echo Stack name=$value
-aws cloudformation deploy --template-file clean_default_sg_rules_cf_template.yaml --stack-name $1
+aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file clean_sg_rules_cf_template.yaml --stack-name $value

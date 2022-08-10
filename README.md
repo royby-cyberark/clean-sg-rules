@@ -1,58 +1,44 @@
 
-# Welcome to your CDK Python project!
+# Deploying the CloudFormation template
+* Copy `clean_sg_rules_cf_template.yaml`
+* deploy with AWS cli (Replace DefaultSecurityGroupCleaner with anything else you want): 
 
-This is a blank project for CDK development with Python.
+`aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file clean_default_sg_rules_cf_template.yaml --stack-name DefaultSecurityGroupCleaner`
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+* If you want to make changes to the Lambda, you need to run `source synth_cf_template` to generate an update CF template file (requires a working CDK env - see below)
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+# Invoking the Lambda
+You can invoke the lambda however you want (console, aws cli, etc.)
+By default it will do a dry-run and won't delete anything, but you can look at its cloudwatch to see what it would do.
 
-To manually create a virtualenv on MacOS and Linux:
-
+* To do a wet run, pass the following input event to the Lambda:
 ```
-$ python3 -m venv .venv
-```
-
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
-
-```
-$ source .venv/bin/activate
+{
+    "DryRun": true/false (boolean)
+}
 ```
 
-If you are a Windows platform, you would activate the virtualenv like this:
+* You can pass the following event parameters:
+    "DryRun": true/false (If false - do a wet run)
+    "LogLevel": "DEBUG"/"INFO" (Other are ok but have no effect)
+    "SingleRegion" - set to a region name if you want to run on one region only, other will run on all regions
+    "CleanInbound": true/false - if you want to avoid cleaning inbound (default is true)
+    "CleanOutbound": true/false - if you want to avoid cleaning outbound (default is true)
+
+* Example:
 
 ```
-% .venv\Scripts\activate.bat
+{
+    "DryRun": false,
+    "LogLevel": "DEBUG",
+    "SingleRegion": "us-east-1",
+    "CleanInbound": false
+    "CleanOutbound": true
+}
 ```
 
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
-
-```
-$ cdk synth
-```
-
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
-
-## Useful commands
-
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
-
-Enjoy!
+# Working with the CDK project
+* Preqs: Python 3.8, pipenv
+* Activate virtual env: `pipenv shell`
+* Install dependencies: `pipenv sync --dev`
+* Then you can run `source synth_cf_template`

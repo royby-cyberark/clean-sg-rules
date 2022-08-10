@@ -21,9 +21,13 @@ class CleanDefaultSgRulesStack(Stack):
                     iam.PolicyDocument(statements=[
                         iam.PolicyStatement(
                             actions=[
-                                'ec2:*', # TODO - actions
+                                'ec2:DescribeRegions',
+                                'ec2:DescribeVpcs',
+                                'ec2:DescribeSecurityGroups',
+                                'ec2:RevokeSecurityGroupIngress',
+                                'ec2:RevokeSecurityGroupEgress',
                             ],
-                            resources=['*'], # TODO - resource
+                            resources=['*'],
                             effect=iam.Effect.ALLOW,
                         ),
                     ])
@@ -42,5 +46,5 @@ class CleanDefaultSgRulesStack(Stack):
             role=lambda_role, 
             code=aws_lambda.Code.from_inline(lambda_code),
             handler='index.handler',
-            timeout=Duration.minutes(5),
+            timeout=Duration.minutes(15),
         )
