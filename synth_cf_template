@@ -1,0 +1,2 @@
+#!/bin/bash
+cdk synth --path-metadata false --version-reporting false > clean_default_sg_rules_cf_template.yaml
