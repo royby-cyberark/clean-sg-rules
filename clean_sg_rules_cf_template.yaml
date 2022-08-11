@@ -116,16 +116,16 @@ Resources:
 
           def revoke_rule(ec2_resource, rule, config: Config):
               rule_type = 'outbound' if rule['IsEgress'] else 'ingress'
-              LOGGER.info(f'++Warning! forbidden {rule_type} rule found, deleting: {rule}')
+              LOGGER.info(f'++Warning! forbidden {rule_type} rule found: {rule}')
               rule_id = rule['SecurityGroupRuleId']
-              sg = ec2_resource.SecurityGroup(rule_id)
+              sg = ec2_resource.SecurityGroup(rule['GroupId'])
 
               # We can revoke all rules, but it might be better to go rule by rule
               if rule['IsEgress'] and config.clean_outbound:
-                  call_revoke_rules(sg.revoke_ingress, rule_ids=[rule_id], dry_run=config.dry_run)
+                  call_revoke_rules(sg.revoke_egress, rule_ids=[rule_id], dry_run=config.dry_run)
 
               if not rule['IsEgress'] and config.clean_inbound:
-                  call_revoke_rules(sg.revoke_egress, rule_ids=[rule_id], dry_run=config.dry_run)
+                  call_revoke_rules(sg.revoke_ingress, rule_ids=[rule_id], dry_run=config.dry_run)
 
 
           def call_revoke_rules(revoke_function, rule_ids: List, dry_run: bool):
