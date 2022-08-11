@@ -20,6 +20,7 @@ Resources:
             Statement:
               - Action:
                   - ec2:DescribeRegions
+                  - ec2:DescribeSecurityGroupRules
                   - ec2:DescribeSecurityGroups
                   - ec2:DescribeVpcs
                   - ec2:RevokeSecurityGroupEgress
@@ -98,43 +99,42 @@ Resources:
               filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}]
 
               response=ec2_client.describe_security_groups(Filters=filters)
-              
-              LOGGER.debug(f'Security groups: {response}')
+              sg_ids = [id['GroupId'] for id in response['SecurityGroups']]
 
-              for security_group in response['SecurityGroups']:
-                  inbound_rules = default_cidr_rules(security_group['IpPermissions'])
-                  LOGGER.debug(f'{inbound_rules=}')
-              
-                  outbound_rules = default_cidr_rules(security_group['IpPermissionsEgress'])
-                  LOGGER.debug(f'{outbound_rules=}')
-                  
-                  sg_id = security_group['GroupId']
+              response = ec2_client.describe_security_group_rules(Filters=[{'Name': 'group-id', 'Values': sg_ids}])
 
-                  sg = ec2_resource.SecurityGroup(sg_id)
-
-                  if config.clean_inbound and inbound_rules:
-                      revoke_rules(sg.revoke_ingress, rules=inbound_rules, sg_id=sg_id, vpc_id=vpc_id, type='inbound', dry_run=config.dry_run)
-                  if config.clean_outbound and outbound_rules:
-                      revoke_rules(sg.revoke_egress, rules=outbound_rules, sg_id=sg_id, vpc_id=vpc_id, type='outbound', dry_run=config.dry_run)
+              for rule in response['SecurityGroupRules']:
+                  if rule_is_forbidden(rule):
+                      revoke_rule(ec2_resource, rule=rule, config=config)
 
 
-          def default_cidr_rules(rules: List):
-              rules_with_ip_ranges = [rule for rule in rules if rule['IpRanges'] or rule['Ipv6Ranges']]
-              LOGGER.debug(f'{rules_with_ip_ranges=}')
-              default_cidr_lambda = lambda rule: {'CidrIp': '0.0.0.0/0'} in rule['IpRanges'] or {'CidrIp': '::/0'} in rule['Ipv6Ranges']
-              return [rule for rule in rules_with_ip_ranges if default_cidr_lambda(rule)]
+          def rule_is_forbidden(rule) -> bool:
+              forbidden = rule.get('CidrIpv4') == '0.0.0.0/0' or rule.get('CidrIpv6') == '::/0'
+              LOGGER.debug(f'checking if rule_is_forbidden: {rule}. result: {forbidden}')
+              return forbidden
 
-          def revoke_rules(revoke_function, sg_id: str, vpc_id: str, rules: List, type: str, dry_run: bool):
-              LOGGER.info(f'++Warning! security group {sg_id} in default vpc: {vpc_id}, has {type} rules')
-              LOGGER.info(f'Deleting rules: {rules=}')
-                  
+
+          def revoke_rule(ec2_resource, rule, config: Config):
+              rule_type = 'outbound' if rule['IsEgress'] else 'ingress'
+              LOGGER.info(f'++Warning! forbidden {rule_type} rule found: {rule}')
+              rule_id = rule['SecurityGroupRuleId']
+              sg = ec2_resource.SecurityGroup(rule['GroupId'])
+
+              # We can revoke all rules, but it might be better to go rule by rule
+              if rule['IsEgress'] and config.clean_outbound:
+                  call_revoke_rules(sg.revoke_egress, rule_ids=[rule_id], dry_run=config.dry_run)
+
+              if not rule['IsEgress'] and config.clean_inbound:
+                  call_revoke_rules(sg.revoke_ingress, rule_ids=[rule_id], dry_run=config.dry_run)
+
+
+          def call_revoke_rules(revoke_function, rule_ids: List, dry_run: bool):
               try:
-                  response = revoke_function(IpPermissions=rules, DryRun=dry_run)
+                  response = revoke_function(SecurityGroupRuleIds=rule_ids, DryRun=dry_run)
                   LOGGER.info(f'Deleted sg result: {response}')
-                  return len(rules)
               except botocore.exceptions.ClientError as ex:
                   if ex.response['Error']['Code'] == 'DryRunOperation':
-                      LOGGER.info(f'{ex.response["Error"]["Message"]} ({rules=})')
+                      LOGGER.info(f'{ex.response["Error"]["Message"]} ({rule_ids=})')
                   else:
                       raise
       Role:
