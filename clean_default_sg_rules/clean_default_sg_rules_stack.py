@@ -24,6 +24,7 @@ class CleanDefaultSgRulesStack(Stack):
                                 'ec2:DescribeRegions',
                                 'ec2:DescribeVpcs',
                                 'ec2:DescribeSecurityGroups',
+                                'ec2:DescribeSecurityGroupRules',
                                 'ec2:RevokeSecurityGroupIngress',
                                 'ec2:RevokeSecurityGroupEgress',
                             ],
