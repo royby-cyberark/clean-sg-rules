@@ -39,6 +39,13 @@ By default it will do a dry-run and won't delete anything, but you can look at i
 }
 ```
 
+## Invoke from command-line
+
+Under windows you might need to escape the double quotes (replaces " with \")
+For example:
+
+`aws lambda invoke --function-name <lambda-name> --cli-binary-format raw-in-base64-out --payload '{ "DryRun": false, "LogLevel": "DEBUG", "CleanInbound": false, "CleanOutbound": true }' lambda_output`
+
 # Working with the CDK project
 * Preqs: Python 3.8, pipenv
 * Activate virtual env: `pipenv shell`
