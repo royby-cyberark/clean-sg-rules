@@ -3,7 +3,7 @@
 * Copy `clean_sg_rules_cf_template.yaml`
 * deploy with AWS cli (Replace DefaultSecurityGroupCleaner with anything else you want): 
 
-`aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file clean_default_sg_rules_cf_template.yaml --stack-name DefaultSecurityGroupCleaner`
+`aws cloudformation deploy --capabilities CAPABILITY_NAMED_IAM --template-file clean_sg_rules_cf_template.yaml --stack-name DefaultSecurityGroupCleaner`
 
 * If you want to make changes to the Lambda, you need to run `source synth_cf_template` to generate an update CF template file (requires a working CDK env - see below)
 
@@ -44,3 +44,5 @@ By default it will do a dry-run and won't delete anything, but you can look at i
 * Activate virtual env: `pipenv shell`
 * Install dependencies: `pipenv sync --dev`
 * Then you can run `source synth_cf_template`
+
+    
