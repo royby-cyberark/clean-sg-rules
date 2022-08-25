@@ -35,7 +35,7 @@ See defult values below.
     "DryRun": false,
     "LogLevel": "DEBUG",
     "SingleRegion": "us-east-1",
-    "CleanInbound": false
+    "CleanInbound": false,
     "CleanOutbound": true
 }
 ```
@@ -45,7 +45,7 @@ See defult values below.
 ```
     DryRun=true,
     LogLevel="INFO",
-    CleanInbound=true
+    CleanInbound=true,
     CleanOutbound=true
 ```
 
