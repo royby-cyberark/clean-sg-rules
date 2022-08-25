@@ -40,15 +40,13 @@ See defult values below.
 }
 ```
 
-* Default values:
+* Default values (pass {} for default values):
 
 ```
-{
-    "DryRun": true,
-    "LogLevel": "INFO",
-    "CleanInbound": true
-    "CleanOutbound": true
-}
+    DryRun=true,
+    LogLevel="INFO",
+    CleanInbound=true
+    CleanOutbound=true
 ```
 
 ## Invoke from command-line
