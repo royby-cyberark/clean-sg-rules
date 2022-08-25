@@ -12,6 +12,7 @@
 # Invoking the Lambda
 You can invoke the lambda however you want (console, aws cli, etc.)
 By default it will do a dry-run and won't delete anything, but you can look at its cloudwatch to see what it would do.
+See defult values below.
 
 * To do a wet run, pass the following input event to the Lambda:
 ```
@@ -35,6 +36,17 @@ By default it will do a dry-run and won't delete anything, but you can look at i
     "LogLevel": "DEBUG",
     "SingleRegion": "us-east-1",
     "CleanInbound": false
+    "CleanOutbound": true
+}
+```
+
+* Default values:
+
+```
+{
+    "DryRun": true,
+    "LogLevel": "INFO",
+    "CleanInbound": true
     "CleanOutbound": true
 }
 ```
