@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pytest="*"
+moto = {extras = ["ec2"],version = "*"}
 
 [packages]
 cattrs = "==1.10.0"

@@ -56,10 +56,24 @@ For example:
 
 `aws lambda invoke --function-name <lambda-name> --cli-binary-format raw-in-base64-out --payload '{ "DryRun": false, "LogLevel": "DEBUG", "CleanInbound": false, "CleanOutbound": true }' lambda_output`
 
-# Working with the CDK project
-* Preqs: Python 3.8, pipenv
+# Developer notes
+
+## Installing preqs
+* Install python 3.8+
+* Install pipenv: `pip install pipenv`
+* Install cdk: `npm install -g aws-cdk` (but see here for details: https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
+
+## Before you start
 * Activate virtual env: `pipenv shell`
 * Install dependencies: `pipenv sync --dev`
-* Then you can run `source synth_cf_template`
 
+## Running tests
+  * from the ide - run tests/unit, or `pytest -v tests`
     
+## Working with the CDK project
+After you make some changes in the lambda and run tests, run:
+
+`source synth_cf_template`
+
+To generate your updates cloudformation template
+
