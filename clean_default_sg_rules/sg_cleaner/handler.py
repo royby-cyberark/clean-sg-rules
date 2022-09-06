@@ -85,7 +85,7 @@ def rule_is_forbidden(rule) -> bool:
     forbidden_without_ips = no_ips and rule.get('FromPort') == -1 and rule.get('ToPort') == -1
     LOGGER.debug(f'checking if rule_is_forbidden without ips: {rule}. result: {forbidden_without_ips}')
 
-    return forbidden_with_ips and forbidden_without_ips
+    return forbidden_with_ips or forbidden_without_ips
 
 
 def revoke_rule(ec2_resource, rule, config: Config):
