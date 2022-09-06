@@ -11,6 +11,8 @@ class CleanDefaultSgRulesStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+        account = Stack.of(self).account
+        region = Stack.of(self).region
 
         lambda_role = iam.Role(
             scope=self,
@@ -31,11 +33,20 @@ class CleanDefaultSgRulesStack(Stack):
                             resources=['*'],
                             effect=iam.Effect.ALLOW,
                         ),
+                    ]),
+                'CloudFormationPolicy':
+                    iam.PolicyDocument(statements=[
+                        iam.PolicyStatement(
+                            actions=[
+                                'cloudformation:DeleteStack',
+                            ],
+                            resources=[f'arn:aws:cloudformation:{region}:{account}:stack/{self.stack_name}/*'],
+                            effect=iam.Effect.ALLOW,
+                        ),
                     ])
             },
             managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
         )
-
 
         with open(path.join(path.dirname(__file__), 'sg_cleaner/handler.py'), encoding='utf-8') as file:
             lambda_code = file.read()
@@ -48,4 +59,7 @@ class CleanDefaultSgRulesStack(Stack):
             code=aws_lambda.Code.from_inline(lambda_code),
             handler='index.handler',
             timeout=Duration.minutes(15),
+            environment={
+                'STACK_NAME': self.stack_name
+            }
         )

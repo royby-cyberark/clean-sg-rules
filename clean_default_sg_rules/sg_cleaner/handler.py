@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import json
 import logging
+import os
 from typing import List
 
 import boto3
@@ -16,27 +17,29 @@ class Config:
 
 
 def handler(event, context):
-    dry_run = event.get('DryRun', True)
-    single_region = event.get('SingleRegion')
     log_level = event.get('LogLevel', 'INFO')
     clean_inbound = event.get('CleanInbound', True)
     clean_outbound = event.get('CleanOutbound', True)
+    self_destruct = event.get('SelfDestruct', True)
+
+    stack_name = os.environ['STACK_NAME']
 
     LOGGER.setLevel(logging.getLevelName(log_level))
-    LOGGER.info(f'Parameters: {dry_run=}, {single_region=}, {log_level=}')
 
-    config = Config(dry_run=dry_run, clean_inbound=clean_inbound, clean_outbound=clean_outbound)
+    config = Config(dry_run=False, clean_inbound=clean_inbound, clean_outbound=clean_outbound)
 
     ec2 = boto3.client('ec2')
     response = ec2.describe_regions()
     ec2_regions = [region['RegionName'] for region in response['Regions']]
     LOGGER.info(f'Regions: {ec2_regions}')
 
-    if single_region:
-        clean_rules(config=config, region=single_region)
-    else:
-        for region in ec2_regions:
-            clean_rules(config=config, region=region)
+    for region in ec2_regions:
+        clean_rules(config=config, region=region)
+
+    if (self_destruct):
+        LOGGER.info(f'Destroying stack: {stack_name}')
+        boto3.client('cloudformation').delete_stack(StackName=stack_name)
+
 
 
 def clean_rules(config: Config, region: str):
