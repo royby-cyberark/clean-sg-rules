@@ -97,11 +97,13 @@ Resources:
 
           def clean_rules_from_sg(config: Config, ec2_client, ec2_resource, vpc_id: str):
               filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}]
-
               response=ec2_client.describe_security_groups(Filters=filters)
+              LOGGER.debug(f'** Describe security groups: {response}')
+
               sg_ids = [id['GroupId'] for id in response['SecurityGroups']]
 
               response = ec2_client.describe_security_group_rules(Filters=[{'Name': 'group-id', 'Values': sg_ids}])
+              LOGGER.debug(f'** Describe security groups rules: {response}')
 
               for rule in response['SecurityGroupRules']:
                   if rule_is_forbidden(rule):
@@ -109,9 +111,14 @@ Resources:
 
 
           def rule_is_forbidden(rule) -> bool:
-              forbidden = rule.get('CidrIpv4') == '0.0.0.0/0' or rule.get('CidrIpv6') == '::/0'
-              LOGGER.debug(f'checking if rule_is_forbidden: {rule}. result: {forbidden}')
-              return forbidden
+              forbidden_with_ips = rule.get('CidrIpv4') == '0.0.0.0/0' or rule.get('CidrIpv6') == '::/0'
+              LOGGER.debug(f'checking if rule_is_forbidden with all ips: {rule}. result: {forbidden_with_ips}')
+
+              no_ips = not rule.get('CidrIpv4') and not rule.get('CidrIpv6')
+              forbidden_without_ips = no_ips and rule.get('FromPort') == -1 and rule.get('ToPort') == -1
+              LOGGER.debug(f'checking if rule_is_forbidden without ips: {rule}. result: {forbidden_without_ips}')
+
+              return forbidden_with_ips and forbidden_without_ips
 
 
           def revoke_rule(ec2_resource, rule, config: Config):
